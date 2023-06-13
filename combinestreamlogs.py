@@ -8,7 +8,6 @@ import pandas as pd
 import csv
 import openpyxl
 from openpyxl.styles import NamedStyle
-
 from pathlib import Path
 
 
@@ -19,17 +18,21 @@ output_dir = Path('output')
 
 
 
-#Create the blank excel file and save it to location
+#Create the blank Excel file and save it to location
 wb = openpyxl.Workbook()
 xl_file = Path(output_dir, 'BCM.xlsx').as_posix()
 wb.save(xl_file)
 
-#Create Excel number formats. Doesn't doing this multiple times in loop below
+
+
+#Create Excel number formats. It doesn't like doing this multiple times in loop below
 #Create temp format
 temp_style = NamedStyle(name='temp_style', number_format='0.0')
 
 #Create date format
 date_style = NamedStyle(name='date_style', number_format='YYYY-MM-DD HH:MM:SS')
+
+
 
 #Loop over files in folder
 for f in data_dir.glob('*.csv'):
@@ -46,6 +49,7 @@ for f in data_dir.glob('*.csv'):
         csv_df.to_excel(writer, sheet_name=f.stem, index=False)
 
     #Write summary statistics to excel
+    #Reopen workbook and set worksheet
     wb = openpyxl.load_workbook(xl_file)
     ws = wb[f.stem]
 
@@ -77,58 +81,8 @@ for f in data_dir.glob('*.csv'):
     ws['H7'] = '=MAX(A2:A' + ws_length + ')'
     ws['H7'].style = date_style
 
-    #Auto-adjust column width
-    for column in csv_df:
-        column_width = max(csv_df[column].astype(str).map(len).max(), len(column))
-        col_idx = df.columns.get_loc(column)
-        writer.sheets['my_analysis'].set_column(col_idx, col_idx, column_width)
-
-    for column in csv_df:
-        column_width = max(csv_df[column]. )
-
-
-
-
-
-
+    #Save workbook with changes
     wb.save(xl_file)
 
-
-
-
-
-
-
-
-#Hacker Extra Credit
-#Create dataframe of files to read
-#Initialize lists
-filename = []
-stem = []
-
-#Get all the files in folder. Record file name and stem in list
-for f in data_dir.rglob('*.csv'):
-    filename.append(f.name)
-    stem.append(f.stem)
-
-#Create a dataframe of results
-files_df = pd.DataFrame({'filename': filename,
-                         'stem': stem})
-
-
-
-#Add stream name columns
-files_df['stream'] = files_df['stem'].str.split('-').str[0]
-
-#Create list of unique stream names
-stream_ws = files_df['stream'].unique()
-
-for s in stream_ws:
-
-    #Create and save the workbook
-    wb = openpyxl.Workbook()
-    #wb.save(Path(output_dir, s + '.xlsx'))
-
-
-
-print(stream_ws)
+#Print that the process is done
+print('The data was was written to the excel sheet successfully.')
